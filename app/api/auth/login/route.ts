@@ -28,7 +28,7 @@ export async function POST(req: Request) {
       session: data.session,
       user: data.user,
     })
-  } catch (err) {
+  } catch (_) {
     return NextResponse.json({ error: 'Error inesperado' }, { status: 500 })
   }
 }

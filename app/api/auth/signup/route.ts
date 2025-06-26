@@ -27,8 +27,7 @@ export async function POST(req: Request) {
       message: 'Registro exitoso',
       user: data.user,
     })
-  } catch (err) {
+  } catch (_) {
     return NextResponse.json({ error: 'Error inesperado' }, { status: 500 })
   }
 }
-s
