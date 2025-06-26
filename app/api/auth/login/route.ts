@@ -1,5 +1,3 @@
-// app/api/auth/login/route.ts
-
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
@@ -9,20 +7,28 @@ const supabase = createClient(
 )
 
 export async function POST(req: Request) {
-  const { email, password } = await req.json()
+  try {
+    const { email, password } = await req.json()
 
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  })
+    if (!email || !password) {
+      return NextResponse.json({ error: 'Email y contraseña requeridos' }, { status: 400 })
+    }
 
-  if (error) {
-    return NextResponse.json({ message: 'Error', error: error.message }, { status: 401 })
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    })
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 401 })
+    }
+
+    return NextResponse.json({
+      message: 'Login exitoso',
+      session: data.session,
+      user: data.user,
+    })
+  } catch (err) {
+    return NextResponse.json({ error: 'Error inesperado' }, { status: 500 })
   }
-
-  return NextResponse.json({
-    message: 'Login exitoso',
-    user: data.user,
-    session: data.session,
-  })
 }
