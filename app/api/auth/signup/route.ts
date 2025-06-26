@@ -31,3 +31,4 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Error inesperado' }, { status: 500 })
   }
 }
+s
