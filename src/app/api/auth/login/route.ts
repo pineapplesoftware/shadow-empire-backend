@@ -2,13 +2,8 @@ import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
 export async function POST(req: Request) {
-  console.log("🔥 Intentando login...");
-
   const body = await req.json()
   const { email, password } = body
-
-  console.log("📨 Email recibido:", email)
-  console.log("🔐 Password recibido:", password)
 
   const supabase = createClient(
     process.env.SUPABASE_URL!,
@@ -16,7 +11,6 @@ export async function POST(req: Request) {
   )
 
   if (!email || !password) {
-    console.log("⚠️ Faltan datos")
     return NextResponse.json({ error: 'Email y password requeridos' }, { status: 400 })
   }
 
@@ -27,15 +21,17 @@ export async function POST(req: Request) {
     })
 
     if (error) {
-      console.log("❌ Error al loguear:", error.message)
       return NextResponse.json({ error: error.message }, { status: 401 })
     }
 
-    console.log("✅ Login exitoso:", data)
-    return NextResponse.json({ message: 'Login exitoso', data }, { status: 200 })
+    return NextResponse.json({
+      message: 'Login exitoso',
+      user: data.user,
+      session: data.session
+    }, { status: 200 })
 
   } catch (e) {
-    console.error("🚨 Error inesperado:", e)
+    console.error("❌ Error inesperado:", e)
     return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 })
   }
 }
