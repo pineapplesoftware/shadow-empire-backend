@@ -20,16 +20,22 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Email y password requeridos' }, { status: 400 })
   }
 
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password
-  })
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    })
 
-  if (error) {
-    console.log("❌ Error al loguear:", error.message)
-    return NextResponse.json({ error: error.message }, { status: 401 })
+    if (error) {
+      console.log("❌ Error al loguear:", error.message)
+      return NextResponse.json({ error: error.message }, { status: 401 })
+    }
+
+    console.log("✅ Login exitoso:", data)
+    return NextResponse.json({ message: 'Login exitoso', data }, { status: 200 })
+
+  } catch (e) {
+    console.error("🚨 Error inesperado:", e)
+    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 })
   }
-
-  console.log("✅ Login exitoso:", data)
-  return NextResponse.json({ message: 'Login exitoso', data }, { status: 200 })
 }
