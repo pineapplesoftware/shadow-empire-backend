@@ -1,45 +1,47 @@
-// src/app/api/ai/transcribe/route.ts
+import { NextRequest, NextResponse } from 'next/server';
+import formidable from 'formidable';
+import fs from 'fs';
+import { config } from 'dotenv';
+import OpenAI from 'openai';
 
-import { NextRequest, NextResponse } from "next/server";
-import { Readable } from "stream";
-import * as dotenv from "dotenv";
+config(); // carga las variables de entorno
 
-dotenv.config();
-
-export const config = {
+export const configUpload = {
   api: {
-    bodyParser: false,
-  },
+    bodyParser: false
+  }
 };
 
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY
+});
+
 export async function POST(req: NextRequest) {
-  const formData = await req.formData();
-  const file = formData.get("file") as File;
+  try {
+    const form = formidable({ multiples: false });
+    const data = await new Promise<any>((resolve, reject) => {
+    interface ParsedForm {
+      fields: formidable.Fields;
+      files: formidable.Files;
+    }
 
-  if (!file) {
-    return NextResponse.json({ error: "No file uploaded" }, { status: 400 });
+    form.parse(req as any, (err: any, fields: formidable.Fields, files: formidable.Files) => {
+      if (err) reject(err);
+      resolve({ fields, files } as ParsedForm);
+    });
+    });
+
+    const file = data.files.file;
+    const path = Array.isArray(file) ? file[0].filepath : file.filepath;
+
+    const transcript = await openai.audio.transcriptions.create({
+      file: fs.createReadStream(path),
+      model: "whisper-1"
+    });
+
+    return NextResponse.json({ text: transcript.text });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: 'Transcription failed' }, { status: 500 });
   }
-
-  const buffer = Buffer.from(await file.arrayBuffer());
-  const blob = new Blob([buffer]);
-
-  const apiForm = new FormData();
-  apiForm.append("file", blob, file.name);
-  apiForm.append("model", "whisper-1");
-
-  const response = await fetch("https://api.openai.com/v1/audio/transcriptions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${process.env.OPENAI_API_KEY || ""}`,
-    },
-    body: apiForm,
-  });
-
-  const data = await response.json();
-
-  if (!response.ok) {
-    return NextResponse.json({ error: data.error }, { status: 500 });
-  }
-
-  return NextResponse.json({ transcription: data.text });
 }
