@@ -1,38 +1,43 @@
-import { createClient } from '@supabase/supabase-js'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 
-export async function POST(req: Request) {
-  const body = await req.json()
-  const { email, password } = body
+// Configuración desde variables de entorno
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+const supabase = createClient(supabaseUrl, supabaseKey);
 
-  const supabase = createClient(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_KEY!
-  )
-
-  if (!email || !password) {
-    return NextResponse.json({ error: 'Email y password requeridos' }, { status: 400 })
-  }
-
+export async function POST(req: NextRequest) {
   try {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-    })
+    const { email, password } = await req.json();
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 })
+    if (!email || !password) {
+      return NextResponse.json(
+        { error: "Email and password are required" },
+        { status: 400 }
+      );
     }
 
-    // ✅ Aquí devolvemos los datos del usuario creado
-    return NextResponse.json({
-      message: 'Usuario creado exitosamente',
-      user: data.user,
-      session: data.session
-    }, { status: 200 })
+    // Registro de usuario en Supabase
+    const { data, error } = await supabase.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true, // activa la cuenta sin enviar email de confirmación
+    });
 
-  } catch (e) {
-    console.error("❌ Error inesperado:", e)
-    return NextResponse.json({ error: 'Error interno del servidor' }, { status: 500 })
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
+    return NextResponse.json(
+      { message: "User registered successfully", user: data.user },
+      { status: 200 }
+    );
+  } catch (error: any) {
+    return NextResponse.json(
+      { error: "Unexpected error: " + error.message },
+      { status: 500 }
+    );
   }
 }
+// Exportar el cliente de Supabase para uso en otros archivos si es necesario
+export { supabase };    
