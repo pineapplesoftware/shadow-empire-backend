@@ -1,36 +1,34 @@
-# 👉 Node.js dependencies
-node_modules/
+# ⚙️ Next.js build output
+.next
+out
 
-# 👉 Next.js build output
-.next/
-out/
+# 📦 Node modules
+node_modules
 
-# 👉 Vercel deployment
-.vercel/
-
-# 👉 Environment variables (¡muy importante!)
+# 🔐 Archivos sensibles
 .env
 .env.local
-.env.development
-.env.production
-.env.test
+.env.*.local
 
-# 👉 Logs
+# 💅 Archivos del sistema y editor
+.DS_Store
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# 👉 IDEs y sistema operativo
-.DS_Store
+# 💾 Archivos de lock (opcional si usas sólo uno)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# 💻 VS Code
 .vscode/
-.idea/
 
-# 👉 Coverage y testing
+# 🧪 Coverage / testing
 coverage/
-*.lcov
 
-# 👉 Otros archivos temporales
-*.log
-*.swp
-*.swo
+# ⛔ Evita accidentalmente subir archivos JSON privados (como el de Google Cloud)
+*.service-account.json
+credentials.json
